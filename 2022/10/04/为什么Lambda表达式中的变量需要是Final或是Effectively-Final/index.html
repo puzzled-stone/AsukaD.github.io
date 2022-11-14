@@ -10,7 +10,7 @@
   
   <title>
     
-      Hello World | 阿尔与杰塔的博客
+      为什么Lambda表达式中的变量需要是Final或是Effectively Final | 阿尔与杰塔的博客
     
   </title>
   <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -164,8 +164,8 @@
 </header>
 
     <div id="article-banner">
-  <h2>Hello World</h2>
-  <p class="post-date">2022-10-03</p>
+  <h2>为什么Lambda表达式中的变量需要是Final或是Effectively Final</h2>
+  <p class="post-date">2022-10-04</p>
   <div class="arrow-down">
     <a href="javascript:;"></a>
   </div>
@@ -173,21 +173,45 @@
 <main class="app-body flex-box">
   <!-- Article START -->
   <article class="post-article">
-    <section class="markdown-content"><p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+    <section class="markdown-content"><h4 id="1-什么是lambda表达式？"><a href="#1-什么是lambda表达式？" class="headerlink" title="1.什么是lambda表达式？"></a>1.什么是lambda表达式？</h4><p>我们先来看一下代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Anno</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Function&lt;Integer, Integer&gt; <span class="title function_">incrementer</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> step)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (Integer i) -&gt; i + step;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Function&lt;Integer, Integer&gt; <span class="title function_">annoIncrementer</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> step)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Function</span>&lt;Integer, Integer&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> Integer <span class="title function_">apply</span><span class="params">(Integer i)</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> i + step;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>注意到，Anno类中提供了两个方法incrementer和annoIncrementer，两个方法是等效的。这里我们可以认为lambda其实是一种匿名类。</p>
+<p>而我们创建lambda表达式其实就是创建了一个实现Function接口的类的实例，参考以下代码输出：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        Function&lt;Integer, Integer&gt; inc = Anno.incrementer(<span class="number">1</span>);</span><br><span class="line">        log.info(inc.getClass().getName());</span><br><span class="line">        log.info(inc.getClass().getSuperclass().getName());</span><br><span class="line">        log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, inc.getClass().getInterfaces().length);</span><br><span class="line">        log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, inc.getClass().getInterfaces()[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>现在，回想一下，Java创建对象是存放在哪里的？没错，堆上（暂不需考虑逃逸分析高级特性）。</p>
+<h4 id="2-实例变量-amp-成员变量-amp-局部变量"><a href="#2-实例变量-amp-成员变量-amp-局部变量" class="headerlink" title="2.实例变量&amp;成员变量&amp;局部变量"></a>2.实例变量&amp;成员变量&amp;局部变量</h4><p>Java中变量有三种，实例变量、成员变量和局部变量。</p>
+<p>那么这三种变量有什么区别呢？从存放位置思考一下🤔</p>
+<blockquote>
+<p>没错，实例变量和成员变量都是存放在堆上，只有局部变量存放在栈中。</p>
+</blockquote>
+<h4 id="3-捕获lambda中的变量"><a href="#3-捕获lambda中的变量" class="headerlink" title="3.捕获lambda中的变量"></a>3.捕获lambda中的变量</h4><p>现在，对于这段代码当lambda表达式返回之后，还能继续使用吗？</p>
+<p>对于实例变量和成员变量，同样和lambda表达式的实例存放在堆上，自然没有问题。而对于局部变量，方法结束，栈中的数据会被清理。此时，lambda实例要如何继续使用局部变量呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Function&lt;Integer, Integer&gt; <span class="title function_">incrementer</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> step)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (Integer i) -&gt; i + step;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<p>Java中采用的方式为复制。</p>
+<p>那么，即然是复制，如果变量一直在改变。我们复制到的值还正确吗？</p>
+<p>答案是否定的。JVM复制的值是一个冻结值，是无法变化的。所以，这里就必须要求局部变量必须是final或effectively final（只赋值一次）的。</p>
+<hr>
+<p>参考文档：</p>
+<p><a target="_blank" rel="noopener" href="https://www.baeldung.com/java-lambda-effectively-final-local-variables">https://www.baeldung.com/java-lambda-effectively-final-local-variables</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.javacodegeeks.com/2021/12/lambda-and-final-variables.html">https://www.javacodegeeks.com/2021/12/lambda-and-final-variables.html</a></p>
 </section>
     <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#Java" >
+    <span class="tag-code">Java</span>
+  </a>
+
+  <a href="/tags#Lambda" >
+    <span class="tag-code">Lambda</span>
+  </a>
+
+      </div>
     
     <!-- Tags END -->
     <!-- NAV START -->
@@ -195,13 +219,13 @@
   <div class="nav-container">
     <!-- reverse left and right to put prev and next in a more logic postition -->
     
-    
-      <a class="nav-right" href="/2022/10/04/%E4%B8%BA%E4%BB%80%E4%B9%88Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E9%9C%80%E8%A6%81%E6%98%AFFinal%E6%88%96%E6%98%AFEffectively-Final/">
+      <a class="nav-left" href="/2022/10/03/hello-world/">
+        <span class="nav-arrow">← </span>
         
-          为什么Lambda表达式中的变量需要是Final或是Effectively Final
+          Hello World
         
-        <span class="nav-arrow"> →</span>
       </a>
+    
     
   </div>
 
@@ -247,7 +271,7 @@
   <div class="toc-main">
     <strong class="toc-title">Catalog</strong>
     
-      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Quick-Start"><span class="toc-nav-text">Quick Start</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Create-a-new-post"><span class="toc-nav-text">Create a new post</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Run-server"><span class="toc-nav-text">Run server</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Generate-static-files"><span class="toc-nav-text">Generate static files</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Deploy-to-remote-sites"><span class="toc-nav-text">Deploy to remote sites</span></a></li></ol></li></ol>
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AFlambda%E8%A1%A8%E8%BE%BE%E5%BC%8F%EF%BC%9F"><span class="toc-nav-text">1.什么是lambda表达式？</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#2-%E5%AE%9E%E4%BE%8B%E5%8F%98%E9%87%8F-amp-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F-amp-%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F"><span class="toc-nav-text">2.实例变量&amp;成员变量&amp;局部变量</span></a></li><li class="toc-nav-item toc-nav-level-4"><a class="toc-nav-link" href="#3-%E6%8D%95%E8%8E%B7lambda%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F"><span class="toc-nav-text">3.捕获lambda中的变量</span></a></li></ol>
     
   </div>
 </aside>
@@ -257,7 +281,7 @@
 
 <script>
   (function () {
-    var url = 'https://asukad.github.io/2022/10/03/hello-world/';
+    var url = 'https://asukad.github.io/2022/10/04/为什么Lambda表达式中的变量需要是Final或是Effectively-Final/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -319,7 +343,7 @@
     var gitmentConfig = "AsukaD";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
-        id: "Hello World",
+        id: "为什么Lambda表达式中的变量需要是Final或是Effectively Final",
         owner: "AsukaD",
         repo: "AsukaD.github.io",
         oauth: {
